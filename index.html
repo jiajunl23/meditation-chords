@@ -1,0 +1,188 @@
+<body style="background: white"></body>
+<script src="https://unpkg.com/tone"></script>
+<script src="https://algorithmicmusic.online/js/libs/nn.min.js"></script>
+<script src="https://algorithmicmusic.online/js/viz-helpers.js"></script>
+<script>
+/* global Tone, nn, viz */
+  
+// SOURCES
+// ------------------
+const synth = new Tone.PolySynth()
+
+const path = 'https://tonejs.github.io/audio/drum-samples/Stark/'
+const drumset = new Tone.Players({
+  kick: path + 'kick.mp3',
+  snare: path + 'snare.mp3',
+  hihat: path + 'hihat.mp3',
+  tom1: path + 'tom1.mp3',
+  tom2: path + 'tom2.mp3',
+  tom3: path + 'tom3.mp3'
+})
+
+const list_players = ["kick", "snare", "hihat", "tom1", "tom2", "tom3"]
+
+const possible_notes = ["C", "D", "E", "F", "G", "A", "B"]
+
+// SIGNAL CHAIN
+// -------------------
+synth.toDestination()
+drumset.toDestination()
+
+// TRANSPORT SETUP + OTHER GLOBAL VARS
+// ------------------------------------
+
+Tone.Transport.bpm.value = 240
+Tone.Transport.loop = true
+Tone.Transport.timeSignature = 4
+Tone.Transport.loopEnd = '10m'
+  
+// FUNCTIONS 
+// -----------------
+  
+// the chance calculation 
+function cal_chance(player, bar, beat){
+  if (player === "kick") {
+    if (bar < 5) {
+      return 0
+    }
+    else {
+      if (beat % 4 === 0) {
+        return nn.random()
+      } else {
+        return 0
+      }
+    }
+  }
+
+  if (player === "snare") {
+    if (bar < 5) {
+      if (beat % 4 === 0) {
+        return 1
+      } else {
+        return 0
+      }
+    }
+    else {
+      return nn.random(0, 0.8) 
+    }
+  }
+
+  if (player === "hihat") {
+    if (bar < 5) {
+      return 0
+    }
+    else {
+      if (nn.random() > 0.8){
+        return 0
+      } else{
+        return 0
+      }
+    }
+  }
+
+  if (player === "tom1") {
+    if (bar < 5) {
+      if (beat % 2 === 0) {
+        return 1
+      } else {
+        return 0
+      }
+    }
+    else {
+      return nn.random(0, 1.1)
+    }
+  }
+
+  if (player === "tom2") {
+    if (bar < 5) {
+      if (beat % 3 === 0) {
+        return 1
+      } else {
+        return nn.random()
+      }
+    }
+    else {
+      return nn.random()
+    }
+  }
+
+  if (player === "tom3") {
+    if (bar < 5) {
+      if (beat % 3 === 0) {
+        return 1
+      } else {
+        return nn.random()
+      }
+    }
+    else {
+      if (nn.random(0, 1) > 0.2) {
+        return 2
+      } else {
+        return nn.random()
+      }
+    }
+  }
+}
+
+function toggle () {
+  if (Tone.Transport.state === 'stopped') {
+    Tone.Transport.start()
+    this.content('stop')
+  } else {
+    Tone.Transport.stop()
+    this.content('start')
+  }
+}
+
+function pressPianoKey (note, dur, time) {
+  const delay = time + Tone.Time(dur).toSeconds()
+  Tone.Draw.schedule(() => pianoKeys.attack(note), time)
+  Tone.Draw.schedule(() => pianoKeys.release(note), delay)
+}
+
+function play (time) {
+  const [bar, beat] = Tone.Transport.position.split(':').map(Number)
+  
+  // ............................
+  // musical algorithm goes here
+  // ............................
+  
+  for (const player of list_players){
+    if (cal_chance(player, bar, beat) > 0.5) {
+      drumset.player(player).start(time)
+    }
+    if (cal_chance(player, bar, beat) > 1) {
+      drumset.player(player).start(time + (30 / Tone.Transport.bpm.value))
+    }
+  }
+  
+  const root = nn.random(possible_notes) + nn.randomInt(4, 5)
+  const scale = nn.createScale(root, "major")
+  
+  const triad = [1, 3, 5]
+  let chord = nn.createChord(scale, triad)
+  synth.triggerAttackRelease(chord, "16n", time)
+  
+  pressPianoKey(note, "16n", time)
+}
+  
+  
+// SETUP PLAY LOOP
+// ----------------------
+new Tone.Loop(play).start()
+
+// USER INTERFACE
+// ---------------------
+const toggleBtn = nn.create('button')
+  .content('start')
+  .addTo('body')
+  .on('click', toggle)
+
+nn.create('br').addTo('body')
+
+const pianoKeys = viz.createPianoUI({
+  labels: true,
+  octaves: [3, 6]
+})
+
+</script>
