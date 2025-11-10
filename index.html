@@ -159,14 +159,26 @@ function play (time) {
   const root = nn.random(possible_notes) + nn.randomInt(4, 5)
   const scale = nn.createScale(root, "major")
   
-  const triad = [1, 3, 5]
-  let chord = nn.createChord(scale, triad)
-  synth.triggerAttackRelease(chord, "16n", time)
+  const possible_chords = ["power-chord", "triad", "seventh"]
   
-  pressPianoKey(note, "16n", time)
+  let length
+  
+  if (bar < 5){
+    length = nn.random(["8n", "4n"])
+  } else {
+    length = nn.random(["16n", "8n"])
+  }
+        
+
+  let chord = nn.createChord(scale, nn.random(possible_chords))
+  synth.triggerAttackRelease(chord, length, time)
+  
+  chord.forEach(note => {
+    pressPianoKey(note, length, time)
+  })
 }
-  
-  
+
+
 // SETUP PLAY LOOP
 // ----------------------
 new Tone.Loop(play).start()
