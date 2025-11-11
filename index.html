@@ -197,4 +197,13 @@ const pianoKeys = viz.createPianoUI({
   octaves: [3, 6]
 })
 
+nn.create("br").addTo("body")
+nn.create("label")
+  .content("For this weeks meditation, I used the template and incorporated my last week's meditation's code of the drum beats to start with. On top of the drum beats, I added chords, and I let the roots of the chords to be chosen from the C major notes, and let the octave to be limited to a random number between 4 and 5, and the chord to be triad. After adding this, I also wanted to chords to be a bit diverse, so instead of being triad all the times, I let it be a random one among power-chord, triad, and seventh. Then, because for the drum beats, I have a intro part that has a different pace then the later part, so I also adjusted the duration of the triggerAttackRelease based on the value of bar and added some randomness into it.")
+  .addTo("body")
+  
+nn.create("label")
+  .content("When doing this meditation, I also initially tried to use a specific hard-coded chord melody, instead of the current generated chord based on randomness, but it seems that Tone.Transport is not a suitable one to use if I want to hard-code a melody that the notes have different lengths and I want each of them to go right after the previous note is done playing. Claude recommended some alternative options, and I might experiment with that more in Final Project")
+  .addTo("body")
+
 </script>
